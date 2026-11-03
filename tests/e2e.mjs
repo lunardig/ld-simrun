@@ -7,6 +7,7 @@
 //   PACE         fast (default), brisk or relaxed
 //   ONLY         storyboard ids, comma separated (default: all)
 //   VIDEO_DIR    record both windows to this folder (WebM)
+//   RUNNER_URL   a deployed Sim Runner instead of dist/ (e.g. https://lunardig.github.io/ld-simrun/)
 //
 // Sim Runner is served from dist/ on a local port, so it is a different origin from the game.
 import { chromium } from "playwright";
@@ -19,7 +20,7 @@ const ONLY = process.env.ONLY ?? "all";
 const VIDEO_DIR = process.env.VIDEO_DIR;
 
 const server = await preview({ preview: { port: 0, host: "127.0.0.1" }, logLevel: "error" });
-const runnerBase = server.resolvedUrls.local[0];
+const runnerBase = process.env.RUNNER_URL ?? server.resolvedUrls.local[0];
 const browser = await chromium.launch();
 const ctx = await browser.newContext({
   viewport: { width: 1600, height: 900 },
