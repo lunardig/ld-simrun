@@ -4,6 +4,7 @@
  */
 import type { ClaimView } from "@lunardig/ld-interfaces";
 import type { LdcpClient } from "../vendor/ld-sdk/ts/src/ldcp";
+import { closing, voiced, type Voice } from "./showcase";
 import { holds, readingMs, resolveArgs, type Check, type Condition, type Step, type Storyboard } from "./storyboard";
 
 export type Pace = "relaxed" | "brisk" | "fast";
@@ -33,6 +34,7 @@ export class Stopped extends Error {}
 
 export class Runner {
   pace: Pace = "relaxed";
+  voice: Voice = "guide";
   onProgress: (p: Progress) => void = () => {};
   #host: LdcpClient;
   #view: ClaimView | null = null;
@@ -102,8 +104,9 @@ export class Runner {
     const host = this.#host;
     let commands = 0;
     const progress = (step: number, caption: string, waiting?: Progress["waiting"]) => this.onProgress({ board, step, caption, waiting, commands });
-    const say = async (text: string | undefined) => {
-      if (!text) return;
+    const say = async (guide: string | undefined) => {
+      if (!guide) return;
+      const text = voiced(guide, this.voice);
       progress(current, text);
       await host.caption(text).catch(() => {});
     };
@@ -122,7 +125,7 @@ export class Runner {
           const args = resolveArgs(step.args, await this.#observe());
           const out = await host.submit(step.do, args as never);
           commands++;
-          progress(current, step.say ?? `${step.do} ${Object.values(args)[0] ?? ""}`);
+          progress(current, step.say ? voiced(step.say, this.voice) : `${step.do} ${Object.values(args)[0] ?? ""}`);
           if (out.outcome !== "applied") throw new Error(`${step.do} was rejected (${out.stage} ${out.code}): ${out.message ?? ""}`);
           await this.#sleep(500);
         } else if ("wait" in step) {
@@ -131,7 +134,7 @@ export class Runner {
           if (!holds(step.wait, await this.#observe()) && step.pace) {
             followed = (await host.hurry(true, BigInt(Math.round(step.pace * 1e6)))).followed;
           }
-          progress(current, step.say ?? `Waiting for ${step.label}`, { label: step.label, followed });
+          progress(current, step.say ? voiced(step.say, this.voice) : `Waiting for ${step.label}`, { label: step.label, followed });
           try {
             await this.#until(step.wait);
           } finally {
@@ -147,7 +150,7 @@ export class Runner {
       const v = await this.#observe();
       const checks = board.checks.map((check) => ({ check, ok: holds(check.holds, v) }));
       const passed = checks.every((c) => c.ok);
-      await say(passed ? `“${board.title}”: every check passed.` : `“${board.title}”: a check failed.`);
+      await say(closing(board.title, passed, this.voice));
       return { board, passed, checks, commands, stateHash: v.state_hash, claimSeconds: Number((BigInt(v.time_us) - start) / 1_000_000n) };
     } catch (err) {
       await host.hurry(false).catch(() => {});

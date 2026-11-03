@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import type { ClaimView } from "@lunardig/ld-interfaces";
 import { holds, resolveArgs } from "./storyboard";
 import { STORYBOARDS } from "./storyboards";
+import { SHOWCASE } from "./showcase";
 
 const view = {
   time_us: "0",
@@ -43,5 +44,10 @@ describe("storyboards", () => {
       expect(b.checks.length).toBeGreaterThan(0);
       for (const s of b.steps) if ("wait" in s) expect(s.label.length).toBeGreaterThan(0);
     }
+  });
+
+  test("every showcase line replaces a caption that exists", () => {
+    const says = new Set(STORYBOARDS.flatMap((b) => b.steps.map((s) => ("say" in s ? s.say : undefined)).filter(Boolean)));
+    for (const k of Object.keys(SHOWCASE)) expect(says.has(k), k).toBe(true);
   });
 });

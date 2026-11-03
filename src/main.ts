@@ -1,6 +1,7 @@
 import { LdcpClient, windowPort } from "../vendor/ld-sdk/ts/src/ldcp";
 import { Runner, type Outcome, type Pace, type Progress } from "./runner";
 import { STORYBOARDS } from "./storyboards";
+import { voiced, type Voice } from "./showcase";
 import type { Step, Storyboard } from "./storyboard";
 
 const q = new URLSearchParams(location.search);
@@ -67,6 +68,12 @@ async function main() {
   pace.value = (q.get("pace") as Pace) ?? "relaxed";
   runner.pace = pace.value as Pace;
   pace.onchange = () => (runner.pace = pace.value as Pace);
+  const voice = el("select", { "aria-label": "Captions", "data-testid": "voice" }) as HTMLSelectElement;
+  for (const [v, label] of [["guide", "Guide captions"], ["showcase", "Showcase captions"]]) voice.append(el("option", { value: v }, label));
+  voice.value = q.get("voice") === "showcase" ? "showcase" : "guide";
+  runner.voice = voice.value as Voice;
+  voice.onchange = () => (runner.voice = voice.value as Voice);
+  if (q.has("present")) document.body.classList.add("presenting");
   const runAll = el("button", { class: "primary", "data-testid": "run-all" }, "Run all") as HTMLButtonElement;
   const runPicked = el("button", { "data-testid": "run-picked" }, "Run selected") as HTMLButtonElement;
   const stop = el("button", { "data-testid": "stop", disabled: "" }, "Stop") as HTMLButtonElement;
@@ -96,7 +103,7 @@ async function main() {
 
   const summary = el("p", { class: "summary", "data-testid": "summary" });
   app.replaceChildren(
-    el("section", { class: "panel" }, el("div", { class: "controls" }, runAll, runPicked, stop, pace, present), hint, list, summary),
+    el("section", { class: "panel" }, el("div", { class: "controls" }, runAll, runPicked, stop, pace, voice, present), hint, list, summary),
     stage,
   );
 
@@ -108,7 +115,7 @@ async function main() {
       title.textContent = p.board.title;
       result.replaceChildren();
       steps.replaceChildren(
-        ...p.board.steps.map((s, i) => el("li", { "data-step": String(i) }, stepLabel(s))),
+        ...p.board.steps.map((s, i) => el("li", { "data-step": String(i) }, stepLabel(s, runner.voice))),
       );
     }
     caption.textContent = p.caption;
@@ -170,8 +177,8 @@ async function main() {
   else if (auto) runQueue(STORYBOARDS.filter((b) => auto.split(",").includes(b.id)));
 }
 
-function stepLabel(s: Step): string {
-  if ("say" in s && s.say) return s.say;
+function stepLabel(s: Step, voice: Voice): string {
+  if ("say" in s && s.say) return voiced(s.say, voice);
   if ("do" in s) {
     const id = Object.values(s.args).find((a) => typeof a === "string" && /-\d|^job-|^c-/.test(a));
     return `${s.do.toLowerCase().replace(/_/g, " ")} ${typeof id === "string" ? id : ""}`.trim();

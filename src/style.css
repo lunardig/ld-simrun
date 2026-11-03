@@ -113,5 +113,7 @@ main {
 .cta { display: inline-block; padding: 10px 18px; border-radius: 8px; background: var(--accent); color: var(--accent-fg); text-decoration: none; font-weight: 600; }
 body.presenting main { grid-template-columns: 1fr; }
 body.presenting .panel { display: none; }
-body.presenting .caption { font-size: 2.6rem; }
+body.presenting .caption { font-size: clamp(1.6rem, 6vw, 2.6rem); }
+body.presenting main { padding: 12px; }
+body.presenting .top { padding: 10px 12px; }
 body.presenting .steps { font-size: 1.15rem; max-height: none; }

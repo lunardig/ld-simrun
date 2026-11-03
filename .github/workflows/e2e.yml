@@ -1,7 +1,8 @@
 name: e2e
 
-# Plays every storyboard against the live game in a headless browser, and records both
-# windows. Run it by hand (Actions > e2e > Run workflow); the clips are uploaded.
+# Plays every storyboard against the live game in a headless browser, records both windows,
+# and composes a 1080p MP4 per storyboard and one for the whole run (artifact clips-1080p).
+# Run it by hand: Actions > e2e > Run workflow.
 on:
   workflow_dispatch:
     inputs:
@@ -11,6 +12,9 @@ on:
       only:
         description: "storyboard ids, comma separated, or all"
         default: "all"
+      voice:
+        description: "captions: showcase or guide"
+        default: "showcase"
       host:
         description: "the game"
         default: "https://lunardig.com"
@@ -29,15 +33,23 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      - name: ffmpeg and fonts, for the 1080p clips
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg fonts-dejavu-core
       - run: npm run build
       - run: npm run e2e
         env:
           HOST_URL: ${{ inputs.host }}
           PACE: ${{ inputs.pace }}
           ONLY: ${{ inputs.only }}
-          VIDEO_DIR: clips
+          VOICE: ${{ inputs.voice }}
+          VIDEO_DIR: recordings
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: clips
-          path: clips
+          name: clips-1080p
+          path: recordings/clips
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: raw-windows
+          path: recordings/*.webm

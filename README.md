@@ -20,7 +20,7 @@ under its address. Anything it does, your own controller can do.
    the game, or tick **Let controllers set the pace** so Sim Runner can fast-forward while
    it waits. Your own speed control always wins.
 
-**Presentation** shows large captions for recording. Runs that a controller starts do not
+**Presentation** shows large captions for recording, and **Showcase captions** switches to the punchier voice used in the clips (`?present&voice=showcase` in the address does both). Runs that a controller starts do not
 count toward your campaign.
 
 ## Storyboards
@@ -55,8 +55,11 @@ game's Controllers dialog opens it by address.
     npm run build && npm run e2e
 
 `npm run e2e` drives the live game (or `HOST_URL=` a local one) through every storyboard in
-a headless browser. `VIDEO_DIR=clips` records both windows, which is how the demo clips are
-made. The **e2e** workflow runs it on demand and uploads the videos.
+a headless browser. `VIDEO_DIR=recordings` records both windows and, with ffmpeg, composes a
+1080p MP4 per storyboard and one for the whole run: the game on the left, Sim Runner's
+caption column on the right, title and footer. `VOICE=showcase` (the default for clips) uses
+the punchier captions in `src/showcase.ts`; `guide` uses the teaching ones. The **e2e**
+workflow runs it on demand and uploads the clips (`clips-1080p`) and the raw windows.
 
 ## Licence
 
