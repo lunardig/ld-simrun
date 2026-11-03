@@ -1,0 +1,8 @@
+Lunar Dig — ld-simrun
+Copyright 2026 ioMetics LC
+
+Sim Runner plays Lunar Dig's scenarios through the game's controller protocol (ldcp-0).
+It is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+"Lunar Dig" and the Lunar Dig name are not licensed under the Apache License;
+see section 6 of the License.

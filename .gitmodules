@@ -1,0 +1,3 @@
+[submodule "vendor/ld-sdk"]
+	path = vendor/ld-sdk
+	url = https://github.com/lunardig/ld-sdk

@@ -1,0 +1,43 @@
+name: e2e
+
+# Plays every storyboard against the live game in a headless browser, and records both
+# windows. Run it by hand (Actions > e2e > Run workflow); the clips are uploaded.
+on:
+  workflow_dispatch:
+    inputs:
+      pace:
+        description: "fast, brisk or relaxed (relaxed for clips)"
+        default: "relaxed"
+      only:
+        description: "storyboard ids, comma separated, or all"
+        default: "all"
+      host:
+        description: "the game"
+        default: "https://lunardig.com"
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run e2e
+        env:
+          HOST_URL: ${{ inputs.host }}
+          PACE: ${{ inputs.pace }}
+          ONLY: ${{ inputs.only }}
+          VIDEO_DIR: clips
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clips
+          path: clips
