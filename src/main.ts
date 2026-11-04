@@ -3,9 +3,10 @@ import { Runner, type Outcome, type Pace, type Progress } from "./runner";
 import { STORYBOARDS } from "./storyboards";
 import { voiced, type Voice } from "./showcase";
 import type { Step, Storyboard } from "./storyboard";
+import { hostOriginFrom } from "./host";
 
 const q = new URLSearchParams(location.search);
-const HOST = q.get("host") ?? "https://lunardig.com";
+const HOST = hostOriginFrom(q.get("host"));
 const app = document.querySelector<HTMLElement>("#app")!;
 const statusEl = document.querySelector<HTMLElement>("#status")!;
 
